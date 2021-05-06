@@ -73,8 +73,6 @@ class WrongCharError(ValueError):
     def __init__(self):
         super().__init__()
 
-
-
 class NewEventCommand(MenuCommand):
     def __init__(self, calendar):
         super().__init__()
@@ -135,33 +133,27 @@ class NewEventCommand(MenuCommand):
         #except ValueError:
         #   raise WrongCharError
 
-
 # Wyswietlenie eventow
 class ListCalendarCommand(MenuCommand):
-    def __init__(self, event):
+    def __init__(self, context):
         super().__init__()
-        self.event = event
+        self.context = context
     def description(self):
         return "List calendar"
     def execute(self):
-        print("HHHH", self.event)
-        return self.event
-
-
-
-
+        self.context.do_magic()
 
 
 
 
 class ICalendarExportCommand(MenuCommand):
-    def __init__(self):
+    def __init__(self,calendar):
         super().__init__()
+        self.calendar = calendar
 
     def description(self):
         return "Export calendar to iCalendar"
 
     def execute(self):
-        # nawigator.ICalExp
         pass
 
