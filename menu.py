@@ -1,38 +1,6 @@
-from calendar import ListingStrategy, list_calendar
-
-'''
-W tym pliku znajdziesz obsługę menu.
-Aby utworzyć własny wpis w menu musisz:
-1. Stworzyć nową klasę dziedziczącą po MenuCommand.
-   * funkcja description() powinna zwracać napis, który zostanie wyświetlony użytkownikowi
-   * funkcja execute() powinna zawierać kod, który zostanie wykonany w przypadku wywołania danej opcji w menu
-2. Za pomocą funkcji add_command() dodać utworzony obiekt stworzonej przez siebie klasy do menu.
-'''
-
-#
-# Może musisz zmienić zachowanie klasy Menu, aby uzyskać maksymalną liczbę punktów?
-#
-
-class MenuCommand:
-    def description(self):
-        '''Return menu item name.'''
-        raise NotImplementedError
-
-    def execute(self):
-        '''Code will be executed on menu action.'''
-        raise NotImplementedError
-
-
-class ExitCommand(MenuCommand):
-    def __init__(self, menu):
+class WrongCharError(ValueError):
+    def __init__(self):
         super().__init__()
-        self._menu = menu
-
-    def description(self):
-        return "Exit"
-
-    def execute(self):
-        self._menu.stop()
 
 class Menu:
     def __init__(self):
@@ -60,18 +28,25 @@ class Menu:
         cmd = self._commands[cmd_num - 1]
         cmd.execute()
 
+class MenuCommand:
+    def description(self):
+        '''Return menu item name.'''
+        raise NotImplementedError
 
+    def execute(self):
+        '''Code will be executed on menu action.'''
+        raise NotImplementedError
 
-## MY WORK
-#1. Stworzyć nową klasę dziedziczącą po MenuCommand.
-#   * funkcja description() powinna zwracać napis, który zostanie wyświetlony użytkownikowi
-#   * funkcja execute() powinna zawierać kod, który zostanie wykonany w przypadku wywołania danej opcji w menu
-##
-
-#Klasa dla dodania nowego eventu
-class WrongCharError(ValueError):
-    def __init__(self):
+class ExitCommand(MenuCommand):
+    def __init__(self, menu):
         super().__init__()
+        self._menu = menu
+
+    def description(self):
+        return "Exit"
+
+    def execute(self):
+        self._menu.stop()
 
 class NewEventCommand(MenuCommand):
     def __init__(self, calendar):
@@ -94,7 +69,6 @@ class NewEventCommand(MenuCommand):
             self.event["time"] = self.time_validator(Time)
 
             self.calendar.append(self.event)
-            print(self.calendar)
 
         except WrongCharError:
             print("Invalid input")
@@ -107,10 +81,10 @@ class NewEventCommand(MenuCommand):
         else:
             raise WrongCharError
 
-# DO DOROBIENIA OBLSUGA CHUJOWYCH DNI
-# https://codereview.stackexchange.com/questions/200634/program-to-check-if-a-date-is-valid-or-not
+
 
     def date_validator(self, date):
+        # WSZYSTKIE DATY MUSZA BYC DWUCYFROWE
         try:
             day, month, year = date.split(".")
             if (len(year) >= 1 and len(year) <= 4):
@@ -120,9 +94,12 @@ class NewEventCommand(MenuCommand):
         except ValueError:
             raise WrongCharError
 
-
+    # DO DOROBIENIA OBLSUGA CHUJOWYCH DNI
+    # https://codereview.stackexchange.com/questions/200634/program-to-check-if-a-date-is-valid-or-not
+    # DO PRZEROBIENIA OBSLUGA CHUJOWYCH POLECEN
 
     def time_validator(self, time):
+        # WSZYSTKIE Godziny i minuty MUSZA BYC DWUCYFROWE
         return time
         #try:
         #    hours, minutes = time.split(":")
@@ -133,11 +110,12 @@ class NewEventCommand(MenuCommand):
         #except ValueError:
         #   raise WrongCharError
 
-# Wyswietlenie eventow
+
 class ListCalendarCommand(MenuCommand):
     def __init__(self, context):
         super().__init__()
         self.context = context
+        #mozna sprobowac zeby brala kalendarz i wtedy context jest czysty
     def description(self):
         return "List calendar"
     def execute(self):
@@ -147,13 +125,14 @@ class ListCalendarCommand(MenuCommand):
 
 
 class ICalendarExportCommand(MenuCommand):
-    def __init__(self,calendar):
+    def __init__(self,context):
         super().__init__()
-        self.calendar = calendar
+        self.context = context
 
     def description(self):
         return "Export calendar to iCalendar"
 
     def execute(self):
-        pass
+        self.context.do_magic()
+
 
