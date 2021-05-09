@@ -23,10 +23,14 @@ class Menu:
             print("{}. {}".format(i + 1, cmd.description()))
 
     def _execute_selected_command(self):
-        cmd_num = int(input("Select menu item (1-{}): ".format(len(self._commands))))
-
-        cmd = self._commands[cmd_num - 1]
-        cmd.execute()
+        try:
+            cmd_num = int(input("Select menu item (1-{}): ".format(len(self._commands))))
+            if cmd_num not in range(1,len(self._commands)):
+                raise WrongCharError
+            cmd = self._commands[cmd_num - 1]
+            cmd.execute()
+        except (ValueError, WrongCharError):
+            print("Invalid input")
 
 class MenuCommand:
     def description(self):
@@ -50,82 +54,94 @@ class ExitCommand(MenuCommand):
 
 class NewEventCommand(MenuCommand):
     def __init__(self, calendar):
-        super().__init__()
         self.calendar = calendar
-        self.event = {}
 
     def description(self):
         return "New event"
 
     def execute(self):
+        event = {}
         try:
             Title = input("Title: ")
-            self.event["title"] = self.title_validator(Title)
+            event["title"] = self.title_validator(Title)
 
             Date = input("Date (DD.MM.YYYY): ")
-            self.event["date"] = self.date_validator(Date)
+            event["date"] = self.date_validator(Date)
 
             Time = input("Time (HH:MM): ")
-            self.event["time"] = self.time_validator(Time)
+            event["time"] = self.time_validator(Time)
 
-            self.calendar.append(self.event)
+            self.calendar.append(event)
 
         except WrongCharError:
             print("Invalid input")
 
-
     def title_validator(self, title):
-        valid_characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -,.'
+        valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -,."
         if all(char in valid_characters for char in title):
             return title
         else:
             raise WrongCharError
 
-
-
     def date_validator(self, date):
-        # WSZYSTKIE DATY MUSZA BYC DWUCYFROWE
+
+        def day_validator(day, month):
+            monthlist31 = [1, 3, 5, 7, 8, 10, 12]
+            monthlist30 = [4, 6, 9, 11]
+            monthlist28 = 2
+
+            if int(day) >= 1:
+                if int(month) in monthlist31 and int(day) <= 31:
+                    return True
+                elif int(month) in monthlist30 and int(day) <= 30:
+                    return True
+                elif int(month) == monthlist28 and int(day) <= 28:
+                    return True
+            else:
+                return False
+
         try:
             day, month, year = date.split(".")
-            if (len(year) >= 1 and len(year) <= 4):
+            date_len_valid = len(day) == 2 and len(month) == 2 and 1 <= len(year) <= 4
+            month_valid = 1 <= int(month) <= 12
+            day_valid = day_validator(day, month)
+
+            if date_len_valid and month_valid and day_valid:
                 return date
             else:
                 raise WrongCharError
+
         except ValueError:
             raise WrongCharError
 
-    # DO DOROBIENIA OBLSUGA CHUJOWYCH DNI
-    # https://codereview.stackexchange.com/questions/200634/program-to-check-if-a-date-is-valid-or-not
-    # DO PRZEROBIENIA OBSLUGA CHUJOWYCH POLECEN
-
     def time_validator(self, time):
-        # WSZYSTKIE Godziny i minuty MUSZA BYC DWUCYFROWE
-        return time
-        #try:
-        #    hours, minutes = time.split(":")
-        #    if (int(hours)<=0 and int(hours)<=24) and (int(minutes)<=0 and int(minutes)<=59):
-        #        return time
-        #    else:
-        #        raise WrongCharError
-        #except ValueError:
-        #   raise WrongCharError
+        try:
+            hours, minutes = time.split(":")
+            time_len_valid = len(hours) == 2 and len(minutes) == 2
+            hours_range_valid = 0 <= int(hours) <= 23
+            minutes_range_valid = 0 <= int(minutes) <= 59
 
+            if time_len_valid and hours_range_valid and minutes_range_valid:
+                return time
+            else:
+                raise WrongCharError
+
+        except ValueError:
+            raise WrongCharError
 
 class ListCalendarCommand(MenuCommand):
     def __init__(self, context):
         super().__init__()
         self.context = context
-        #mozna sprobowac zeby brala kalendarz i wtedy context jest czysty
+
     def description(self):
         return "List calendar"
+
     def execute(self):
         self.context.do_magic()
 
-
-
-
 class ICalendarExportCommand(MenuCommand):
-    def __init__(self,context):
+    def __init__(self, context):
         super().__init__()
         self.context = context
 
@@ -134,5 +150,3 @@ class ICalendarExportCommand(MenuCommand):
 
     def execute(self):
         self.context.do_magic()
-
-
